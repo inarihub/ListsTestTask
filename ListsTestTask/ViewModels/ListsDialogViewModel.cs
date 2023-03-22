@@ -1,12 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using ListsTestTask.Models;
-using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Linq;
 using System.Windows;
-using System.Windows.Input;
+using System.Collections.Specialized;
 
 namespace ListsTestTask.ViewModels
 {
@@ -24,25 +22,40 @@ namespace ListsTestTask.ViewModels
             get => _selectedOptions;
             set { _selectedOptions = value; }
         }
-        public ICommand SelectCommand { get; set; }
-        public ICommand SelectAllCommand { get; set; }
-        public ICommand UnselectCommand { get; set; }
-        public ICommand UnselectAllCommand { get; set; }
-        public ICommand MoveSelectedUpCommand { get; set; }
-        public ICommand MoveSelectedDownCommand { get; set; }
-        public ICommand SubmitSelectedCommand { get; set; }
+        public IRelayCommand SelectCommand { get; set; }
+        public IRelayCommand SelectAllCommand { get; set; }
+        public IRelayCommand UnselectCommand { get; set; }
+        public IRelayCommand UnselectAllCommand { get; set; }
+        public IRelayCommand MoveSelectedUpCommand { get; set; }
+        public IRelayCommand MoveSelectedDownCommand { get; set; }
+        public IRelayCommand SubmitSelectedCommand { get; set; }
         public ListsDialogViewModel(List<OptionField> availableOptions, ObservableCollection<OptionField> selectedOptions)
         {
             _availableOptions = new(availableOptions.Except(selectedOptions));
             _selectedOptions = new(selectedOptions);
-            SelectCommand = new RelayCommand(SelectOption);
-            SelectAllCommand = new RelayCommand(SelectAllOptions);
-            UnselectCommand = new RelayCommand(UnselectOption);
-            UnselectAllCommand = new RelayCommand(UnselectAllOptions);
-            MoveSelectedUpCommand = new RelayCommand(MoveOptionUp);
-            MoveSelectedDownCommand = new RelayCommand(MoveOptionDown);
+            AvailableOptions.CollectionChanged += OnAvailableCollectionChanged;
+            SelectedOptions.CollectionChanged += OnSelectedCollectionChanged;
+            SelectCommand = new RelayCommand(SelectOption, CanExecuteOnAvailable);
+            SelectAllCommand = new RelayCommand(SelectAllOptions, CanExecuteOnAvailable);
+            UnselectCommand = new RelayCommand(UnselectOption, CanExecuteOnSelected);
+            UnselectAllCommand = new RelayCommand(UnselectAllOptions, CanExecuteOnSelected);
+            MoveSelectedUpCommand = new RelayCommand(MoveOptionUp, CanExecuteOnSelected);
+            MoveSelectedDownCommand = new RelayCommand(MoveOptionDown, CanExecuteOnSelected);
             SubmitSelectedCommand = new RelayCommand<Window>(SubmitSelected);
-        }    
+        }
+
+        private void OnSelectedCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+                UnselectCommand.NotifyCanExecuteChanged();
+                UnselectAllCommand.NotifyCanExecuteChanged();
+                MoveSelectedDownCommand.NotifyCanExecuteChanged();
+                MoveSelectedUpCommand.NotifyCanExecuteChanged();
+        }
+        private void OnAvailableCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+                SelectCommand.NotifyCanExecuteChanged();
+                SelectAllCommand.NotifyCanExecuteChanged();
+        }
         private void SelectOption()
         {
             TransferOption(AvailableOptions, SelectedOptions);
@@ -71,6 +84,7 @@ namespace ListsTestTask.ViewModels
         {
             foreach (var option in oldCollection)
             {
+                option.IsSelected = false;
                 newCollection.Add(option);
             }
             oldCollection.Clear();
@@ -104,6 +118,14 @@ namespace ListsTestTask.ViewModels
         {
             if (window is null) { return; }
             window.DialogResult = true;
+        }
+        private bool CanExecuteOnAvailable()
+        {
+            return AvailableOptions.Any();
+        }
+        private bool CanExecuteOnSelected()
+        {
+            return SelectedOptions.Any();
         }
     }
     enum MoveDirection
