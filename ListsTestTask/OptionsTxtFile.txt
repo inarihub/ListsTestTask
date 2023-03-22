@@ -1,0 +1,19 @@
+﻿Block Price
+Block Volume
+Clearing Volume
+Close
+Combined Price
+EFP Volume
+EFS Volume
+High
+ICE Theoretical Price
+IM Ask
+IM Bid
+IM Trade
+Last
+Low
+Open
+Screen Volume
+Settle
+Spread Volume
+International All-encompassing Modern Most Accurate Indicator of Human Well-being
