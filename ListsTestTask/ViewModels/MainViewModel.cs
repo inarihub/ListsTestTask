@@ -10,17 +10,27 @@ using System.Windows.Input;
 
 namespace ListsTestTask.ViewModels
 {
-    class MainViewModel
+    class MainViewModel : BaseViewModel
     {
         private readonly List<OptionField> _availableOptions;
-        public ICommand ShowDialogViewCommand { get; set; }
-        public ICommand CloseMainWindowCommand { get; set; }
-        public ObservableCollection<OptionField> OptionsToDisplay { get; set; }
+        public IRelayCommand ShowDialogViewCommand { get; set; }
+        public IRelayCommand CloseMainWindowCommand { get; set; }
+
+        private ObservableCollection<OptionField> _optionsToDisplay;
+        public ObservableCollection<OptionField> OptionsToDisplay 
+        {
+            get => _optionsToDisplay;
+            set
+            {
+                _optionsToDisplay = value;
+                OnPropertyChanged(nameof(OptionsToDisplay));
+            }
+        }
         public MainViewModel()
         {
             _availableOptions = new List<OptionField>();
             GetOptionsList("/OptionsTxtFile.txt");
-            OptionsToDisplay = new ObservableCollection<OptionField>();
+            _optionsToDisplay = new ObservableCollection<OptionField>();
             ShowDialogViewCommand = new RelayCommand(ShowDialogView);
             CloseMainWindowCommand = new RelayCommand(CloseMainWindow);
         }
@@ -55,10 +65,7 @@ namespace ListsTestTask.ViewModels
         private void UpdateSelected(ListsDialogViewModel listsDialogVM)
         {
             OptionsToDisplay.Clear();
-            foreach (var item in listsDialogVM.SelectedOptions)
-            {
-                OptionsToDisplay.Add(item);
-            }
+            OptionsToDisplay = listsDialogVM.SelectedOptions;
         }
         private void CloseMainWindow()
         {

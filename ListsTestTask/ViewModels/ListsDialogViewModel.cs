@@ -84,7 +84,10 @@ namespace ListsTestTask.ViewModels
         {
             foreach (var option in oldCollection)
             {
-                option.IsSelected = false;
+                if (option.IsSelected)
+                {
+                    option.IsSelected = false;
+                }
                 newCollection.Add(option);
             }
             oldCollection.Clear();
