@@ -8,10 +8,7 @@ namespace ListsTestTask
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            MainWindow = new MainWindow()
-            {
-                DataContext = new MainViewModel()
-            };
+            MainWindow = new MainWindow();
 
             MainWindow.Show();
             base.OnStartup(e);

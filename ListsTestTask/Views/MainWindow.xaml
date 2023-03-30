@@ -6,13 +6,11 @@
         xmlns:VM="clr-namespace:ListsTestTask.ViewModels"
         xmlns:local="clr-namespace:ListsTestTask.Views"
         mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance Type=VM:MainViewModel}"
         Title="SelectedOptions" Height="450" Width="500" WindowStartupLocation="CenterScreen">
-    <Window.DataContext>
-        <VM:MainViewModel/>
-    </Window.DataContext>
     <Grid Margin="15">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="3*"/> 
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
         <ListView x:Name="MainList" Grid.Column="0" ItemsSource="{Binding OptionsToDisplay}">

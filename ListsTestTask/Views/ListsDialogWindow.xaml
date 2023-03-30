@@ -7,8 +7,9 @@
         xmlns:local="clr-namespace:ListsTestTask.Views"
         xmlns:VM="clr-namespace:ListsTestTask.ViewModels"
         mc:Ignorable="d"
-        Title="Select fields to display..." Height="400" Width="600" WindowStartupLocation="CenterOwner" ResizeMode="NoResize"
-        d:DataContext="{d:DesignInstance Type=VM:ListsDialogViewModel}">
+        d:DataContext="{d:DesignInstance Type=VM:ListsDialogViewModel}"
+        Title="Select fields to display..." Height="400" Width="600"
+        WindowStartupLocation="CenterOwner" ResizeMode="NoResize">
     <Grid Margin="15">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -26,7 +27,7 @@
                      ItemsSource="{Binding AvailableOptions}" IsSynchronizedWithCurrentItem="True">
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">
-                        <Setter Property="IsSelected" Value="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"/>
+                        <Setter Property="IsSelected" Value="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"/>
                     </Style>
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>

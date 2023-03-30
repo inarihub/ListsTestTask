@@ -8,6 +8,7 @@ namespace ListsTestTask.Views
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainViewModel();
         }
     }
 }
