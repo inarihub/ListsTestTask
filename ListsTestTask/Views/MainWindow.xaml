@@ -13,7 +13,7 @@
             <ColumnDefinition Width="3*"/> 
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <ListView x:Name="MainList" Grid.Column="0" ItemsSource="{Binding OptionsToDisplay}">
+        <ListView x:Name="MainList" Grid.Column="0" ItemsSource="{Binding OptionsToDisplay}" SelectionMode="Single">
             <ListView.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Orientation="Vertical">

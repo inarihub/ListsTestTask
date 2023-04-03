@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows;
-using System.Windows.Input;
 
 namespace ListsTestTask.ViewModels
 {
@@ -17,7 +16,7 @@ namespace ListsTestTask.ViewModels
         public IRelayCommand CloseMainWindowCommand { get; set; }
 
         private ObservableCollection<OptionField> _optionsToDisplay;
-        public ObservableCollection<OptionField> OptionsToDisplay 
+        public ObservableCollection<OptionField> OptionsToDisplay
         {
             get => _optionsToDisplay;
             set
@@ -39,9 +38,10 @@ namespace ListsTestTask.ViewModels
             using var stream = Application.GetContentStream(new Uri(path, UriKind.Relative)).Stream;
             using var reader = new StreamReader(stream);
             string? line;
-            while ((line = reader.ReadLine()) != null)
+            while ((line = reader.ReadLine()) is not null)
             {
-                _availableOptions.Add(new OptionField(line, false));
+                if (!_availableOptions.Exists(x => x.Name == line))
+                    _availableOptions.Add(new OptionField(line));
             }
             reader.Close();
         }

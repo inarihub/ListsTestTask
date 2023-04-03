@@ -4,10 +4,9 @@
     {
         public string Name { get; set; }
         public bool IsSelected { get; set; }
-        public OptionField(string name, bool isSelected)
+        public OptionField(string name)
         {
             Name = name;
-            IsSelected = isSelected;
         }
         public override bool Equals(object? obj)
         {

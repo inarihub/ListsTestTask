@@ -1,5 +1,4 @@
 ﻿using System.Windows;
-using ListsTestTask.ViewModels;
 using ListsTestTask.Views;
 
 namespace ListsTestTask
