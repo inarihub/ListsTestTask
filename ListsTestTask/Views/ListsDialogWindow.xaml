@@ -24,7 +24,8 @@
             <Label DockPanel.Dock="Top" Content="Available fields:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             <ListBox x:Name="lb_AbailableFileds" HorizontalAlignment="Stretch" SelectionMode="Single"
                      ItemsSource="{Binding AvailableOptions}" IsSynchronizedWithCurrentItem="True"
-                     SelectedIndex="{Binding AvailableIndex, UpdateSourceTrigger=PropertyChanged}">
+                     SelectedIndex="{Binding AvailableIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
+                     AllowDrop="True">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical">
@@ -44,7 +45,7 @@
             <Label DockPanel.Dock="Top" Content="Selected fields:" HorizontalAlignment="Left"/>
             <ListBox x:Name="lb_SelectedFileds" HorizontalAlignment="Stretch" SelectionMode="Single"
                      ItemsSource="{Binding SelectedOptions}" IsSynchronizedWithCurrentItem="True"
-                     SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged}">
+                     SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Vertical">
@@ -55,8 +56,10 @@
             </ListBox>
         </DockPanel>
         <StackPanel x:Name="sp_OrderButtons" Grid.Column="3" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
-            <Button x:Name="bt_Upper" Content="⋀" Command="{Binding MoveSelectedUpCommand}" Width="70" Height="20" Margin="0,0,0,0"/>
-            <Button x:Name="bt_Lower" Content="⋁" Command="{Binding MoveSelectedDownCommand}" Width="70" Height="20" Margin="0,15,0,0"/>
+            <Button x:Name="bt_Upper" Content="⋀" Command="{Binding MoveSelectedCommand}"
+                    CommandParameter="{x:Static VM:MoveDirection.Up}" Width="70" Height="20" Margin="0,0,0,0"/>
+            <Button x:Name="bt_Lower" Content="⋁" Command="{Binding MoveSelectedCommand}"
+                    CommandParameter="{x:Static VM:MoveDirection.Down}" Width="70" Height="20" Margin="0,15,0,0"/>
         </StackPanel>
         <StackPanel x:Name="sp_ResultButtons" Grid.Column="2" Grid.Row="1" Grid.ColumnSpan="2" Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right">
             <Button x:Name="bt_Ok" Content="Ok" Width="100" Height="30" Margin="10" IsDefault="True"

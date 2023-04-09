@@ -6,142 +6,162 @@ using System.Linq;
 using System.Windows;
 using System.Collections.Specialized;
 
-namespace ListsTestTask.ViewModels
+namespace ListsTestTask.ViewModels;
+
+enum MoveDirection
 {
-    class ListsDialogViewModel : BaseViewModel
+    Up,
+    Down
+}
+
+enum TransferType
+{
+    ToSelected,
+    ToAvailable
+}
+
+class ListsDialogViewModel : BaseViewModel
+{
+    private int _selectedIndex;
+    private int _availableIndex;
+    public int SelectedIndex
     {
-        private int _selectedIndex;
-        private int _availableIndex;
-        private ObservableCollection<OptionField> _availableOptions;
-        private ObservableCollection<OptionField> _selectedOptions;
-
-        public int SelectedIndex
+        get { return _selectedIndex; }
+        set
         {
-            get { return _selectedIndex; }
-            set { _selectedIndex = value; }
-        }
-        public int AvailableIndex
-        {
-            get { return _availableIndex; }
-            set { _availableIndex = value; }
-        }
-        public ObservableCollection<OptionField> AvailableOptions
-        {
-            get => _availableOptions;
-            set { _availableOptions = value; }
-        }
-        public ObservableCollection<OptionField> SelectedOptions
-        {
-            get => _selectedOptions;
-            set { _selectedOptions = value; }
-        }
-
-        public IRelayCommand SelectCommand { get; set; }
-        public IRelayCommand SelectAllCommand { get; set; }
-        public IRelayCommand UnselectCommand { get; set; }
-        public IRelayCommand UnselectAllCommand { get; set; }
-        public IRelayCommand MoveSelectedUpCommand { get; set; }
-        public IRelayCommand MoveSelectedDownCommand { get; set; }
-        public IRelayCommand SubmitSelectedCommand { get; set; }
-        public ListsDialogViewModel(List<OptionField> availableOptions, ObservableCollection<OptionField> selectedOptions)
-        {
-            _availableOptions = new(availableOptions.Except(selectedOptions));
-            _selectedOptions = new(selectedOptions);
-            AvailableOptions.CollectionChanged += OnAvailableCollectionChanged;
-            SelectedOptions.CollectionChanged += OnSelectedCollectionChanged;
-            SelectCommand = new RelayCommand(SelectOption, CanExecuteOnAvailable);
-            SelectAllCommand = new RelayCommand(SelectAllOptions, CanExecuteOnAvailable);
-            UnselectCommand = new RelayCommand(UnselectOption, CanExecuteOnSelected);
-            UnselectAllCommand = new RelayCommand(UnselectAllOptions, CanExecuteOnSelected);
-            MoveSelectedUpCommand = new RelayCommand(MoveOptionUp, CanExecuteOnSelected);
-            MoveSelectedDownCommand = new RelayCommand(MoveOptionDown, CanExecuteOnSelected);
-            SubmitSelectedCommand = new RelayCommand<Window>(SubmitSelected);
-        }
-
-        private void OnSelectedCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
+            _selectedIndex = value;
             UnselectCommand.NotifyCanExecuteChanged();
-            UnselectAllCommand.NotifyCanExecuteChanged();
-            MoveSelectedDownCommand.NotifyCanExecuteChanged();
-            MoveSelectedUpCommand.NotifyCanExecuteChanged();
-        }
-        private void OnAvailableCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            SelectCommand.NotifyCanExecuteChanged();
-            SelectAllCommand.NotifyCanExecuteChanged();
-        }
-        private void SelectOption()
-        {
-            TransferOption(AvailableOptions, SelectedOptions, AvailableIndex);
-        }
-        private void UnselectOption()
-        {
-            TransferOption(SelectedOptions, AvailableOptions, SelectedIndex);
-        }
-        private static void TransferOption(ObservableCollection<OptionField> oldCollection, ObservableCollection<OptionField> newCollection, int index)
-        {
-            if (index < 0) { return; }
-            var selectedOption = oldCollection[index];
-            oldCollection.Remove(selectedOption);
-            newCollection.Add(selectedOption);
-        }
-        private void SelectAllOptions()
-        {
-            TransferAllOptions(AvailableOptions, SelectedOptions);
-        }
-        private void UnselectAllOptions()
-        {
-            TransferAllOptions(SelectedOptions, AvailableOptions);
-        }
-        private static void TransferAllOptions(ObservableCollection<OptionField> oldCollection, ObservableCollection<OptionField> newCollection)
-        {
-            foreach (var option in oldCollection)
-            {
-                newCollection.Add(option);
-            }
-            oldCollection.Clear();
-        }
-        private void MoveOptionUp()
-        {
-            MoveOption(MoveDirection.Up);
-        }
-        private void MoveOptionDown()
-        {
-            MoveOption(MoveDirection.Down);
-        }
-        private void MoveOption(MoveDirection dir)
-        {
-            if (SelectedIndex < 0) { return ; }
-            var selectedOption = _selectedOptions[SelectedIndex];
-
-            if (dir == MoveDirection.Down)
-            {
-                if (SelectedIndex == _selectedOptions.Count - 1) { return; }
-                _selectedOptions.Move(SelectedIndex, SelectedIndex + 1);
-            }
-            else if (dir == MoveDirection.Up)
-            {
-                if (SelectedIndex == 0) { return; }
-                _selectedOptions.Move(SelectedIndex, SelectedIndex - 1);
-            }
-        }
-        private void SubmitSelected(Window? window)
-        {
-            if (window is null) { return; }
-            window.DialogResult = true;
-        }
-        private bool CanExecuteOnAvailable()
-        {
-            return AvailableOptions.Any();
-        }
-        private bool CanExecuteOnSelected()
-        {
-            return SelectedOptions.Any();
+            MoveSelectedCommand.NotifyCanExecuteChanged();
         }
     }
-    enum MoveDirection
+    public int AvailableIndex
     {
-        Up,
-        Down
+        get { return _availableIndex; }
+        set
+        {
+            _availableIndex = value;
+            SelectCommand.NotifyCanExecuteChanged();
+        }
+    }
+
+    public ObservableCollection<OptionField> AvailableOptions { get; set; }
+    public ObservableCollection<OptionField> SelectedOptions { get; set; }
+
+    public IRelayCommand SelectCommand { get; set; }
+    public IRelayCommand UnselectCommand { get; set; }
+    public IRelayCommand SelectAllCommand { get; set; }
+    public IRelayCommand UnselectAllCommand { get; set; }
+    public IRelayCommand MoveSelectedCommand { get; set; }
+    public IRelayCommand SubmitSelectedCommand { get; set; }
+
+    public ListsDialogViewModel(List<OptionField> availableOptions, ObservableCollection<OptionField> selectedOptions)
+    {
+        AvailableOptions = new(availableOptions.Except(selectedOptions));
+        SelectedOptions = new(selectedOptions);
+        AvailableOptions.CollectionChanged += OnCollectionChanged;
+        SelectedOptions.CollectionChanged += OnCollectionChanged;
+        SubmitSelectedCommand = new RelayCommand<Window>(SubmitSelected);
+        MoveSelectedCommand = new RelayCommand<MoveDirection>(MoveOption, CanExecuteOnMove);
+        SelectCommand = new RelayCommand(SelectOption, CanExecuteOnSelect);
+        UnselectCommand = new RelayCommand(UnselectOption, CanExecuteOnUnselect);
+        SelectAllCommand = new RelayCommand(SelectAllOptions, CanExecuteOnAllSelect);
+        UnselectAllCommand = new RelayCommand(UnselectAllOptions, CanExecuteOnAllUnselect);
+    }
+
+    private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        SelectCommand.NotifyCanExecuteChanged();
+        UnselectCommand.NotifyCanExecuteChanged();
+        SelectAllCommand.NotifyCanExecuteChanged();
+        UnselectAllCommand.NotifyCanExecuteChanged();
+        MoveSelectedCommand.NotifyCanExecuteChanged();
+    }
+
+    private void SelectOption()
+    {
+        TransferOption(AvailableOptions, SelectedOptions, AvailableIndex);
+    }
+
+    private void UnselectOption()
+    {
+        TransferOption(SelectedOptions, AvailableOptions, SelectedIndex);
+    }
+
+    private static void TransferOption(ObservableCollection<OptionField> oldCollection, ObservableCollection<OptionField> newCollection, int index)
+    {
+        if (index < 0) { return; }
+        var selectedOption = oldCollection[index];
+        oldCollection.Remove(selectedOption);
+        newCollection.Add(selectedOption);
+    }
+
+    private void SelectAllOptions()
+    {
+        TransferAllOptions(AvailableOptions, SelectedOptions);
+    }
+
+    private void UnselectAllOptions()
+    {
+        TransferAllOptions(SelectedOptions, AvailableOptions);
+    }
+
+    private static void TransferAllOptions(ObservableCollection<OptionField> oldCollection, ObservableCollection<OptionField> newCollection)
+    {
+        foreach (var option in oldCollection)
+        {
+            newCollection.Add(option);
+        }
+        oldCollection.Clear();
+    }
+
+    private void MoveOption(MoveDirection direction)
+    {
+        if (SelectedIndex < 0) { return; }
+        var selectedOption = SelectedOptions[SelectedIndex];
+
+        if (direction == MoveDirection.Down)
+        {
+            if (SelectedIndex == SelectedOptions.Count - 1) { return; }
+            SelectedOptions.Move(SelectedIndex, SelectedIndex + 1);
+        }
+        else if (direction == MoveDirection.Up)
+        {
+            if (SelectedIndex == 0) { return; }
+            SelectedOptions.Move(SelectedIndex, SelectedIndex - 1);
+        }
+    }
+
+    private void SubmitSelected(Window? window)
+    {
+        if (window is null) { return; }
+        window.DialogResult = true;
+    }
+
+    private bool CanExecuteOnSelect()
+    {
+        return AvailableIndex != -1;
+    }
+
+    private bool CanExecuteOnUnselect()
+    {
+        return SelectedIndex != -1;
+    }
+
+    private bool CanExecuteOnAllSelect()
+    {
+        return AvailableOptions.Any();
+    }
+
+    private bool CanExecuteOnAllUnselect()
+    {
+        return SelectedOptions.Any();
+    }
+
+    private bool CanExecuteOnMove(MoveDirection direction)
+    {
+        if (direction == MoveDirection.Down)
+            return SelectedIndex < SelectedOptions.Count - 1 && SelectedIndex != -1;
+
+        return SelectedIndex > 0;
     }
 }
