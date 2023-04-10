@@ -4,7 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ListsTestTask.Views"
+        xmlns:DGDR="clr-namespace:ListsTestTask.DragDropBehavior"
         xmlns:VM="clr-namespace:ListsTestTask.ViewModels"
+        xmlns:UC="clr-namespace:ListsTestTask.Views.ListDialogControls"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=VM:ListsDialogViewModel}"
         Title="Select fields to display..." Height="400" Width="600"
@@ -22,18 +24,8 @@
         </Grid.RowDefinitions>
         <DockPanel x:Name="dp_AvailableFields" Grid.Column="0" Grid.Row="0">
             <Label DockPanel.Dock="Top" Content="Available fields:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-            <ListBox x:Name="lb_AbailableFileds" HorizontalAlignment="Stretch" SelectionMode="Single"
-                     ItemsSource="{Binding AvailableOptions}" IsSynchronizedWithCurrentItem="True"
-                     SelectedIndex="{Binding AvailableIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"
-                     AllowDrop="True">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="{Binding Path=Name}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <UC:OptionsListControl x:Name="ul_AvailableList" Collection="{Binding AvailableOptions}" DGDR:DragDropOptionsList.DragEnabled="True"
+                                Index="{Binding AvailableIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"/>
         </DockPanel>
         <StackPanel x:Name="sp_SelectButtons" Grid.Column="1" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
             <Button x:Name="bt_ToLeft" Content="&gt;" Command="{Binding SelectCommand}" Width="70" Height="20"/>
@@ -43,17 +35,8 @@
         </StackPanel>
         <DockPanel x:Name="dp_SelectedFields" Grid.Column="2" Grid.Row="0">
             <Label DockPanel.Dock="Top" Content="Selected fields:" HorizontalAlignment="Left"/>
-            <ListBox x:Name="lb_SelectedFileds" HorizontalAlignment="Stretch" SelectionMode="Single"
-                     ItemsSource="{Binding SelectedOptions}" IsSynchronizedWithCurrentItem="True"
-                     SelectedIndex="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <StackPanel Orientation="Vertical">
-                            <TextBlock Text="{Binding Path=Name}"/>
-                        </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <UC:OptionsListControl x:Name="ul_SelectedList" Collection="{Binding SelectedOptions}" DGDR:DragDropOptionsList.DragEnabled="True"
+                                Index="{Binding SelectedIndex, UpdateSourceTrigger=PropertyChanged, Mode=OneWayToSource}"/>
         </DockPanel>
         <StackPanel x:Name="sp_OrderButtons" Grid.Column="3" Grid.Row="0" Orientation="Vertical" VerticalAlignment="Center">
             <Button x:Name="bt_Upper" Content="⋀" Command="{Binding MoveSelectedCommand}"
