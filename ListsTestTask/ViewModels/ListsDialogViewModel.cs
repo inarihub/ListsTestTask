@@ -14,13 +14,7 @@ enum MoveDirection
     Down
 }
 
-enum TransferType
-{
-    ToSelected,
-    ToAvailable
-}
-
-class ListsDialogViewModel : BaseViewModel
+public class ListsDialogViewModel : BaseViewModel
 {
     private int _selectedIndex;
     private int _availableIndex;
@@ -53,6 +47,8 @@ class ListsDialogViewModel : BaseViewModel
     public IRelayCommand UnselectAllCommand { get; set; }
     public IRelayCommand MoveSelectedCommand { get; set; }
     public IRelayCommand SubmitSelectedCommand { get; set; }
+    public IRelayCommand DoubleClickAvailableCommand { get; set; }
+    public IRelayCommand DoubleClickSelectedCommand { get; set; }
 
     public ListsDialogViewModel(List<OptionField> availableOptions, ObservableCollection<OptionField> selectedOptions)
     {
@@ -66,6 +62,8 @@ class ListsDialogViewModel : BaseViewModel
         UnselectCommand = new RelayCommand(UnselectOption, CanExecuteOnUnselect);
         SelectAllCommand = new RelayCommand(SelectAllOptions, CanExecuteOnAllSelect);
         UnselectAllCommand = new RelayCommand(UnselectAllOptions, CanExecuteOnAllUnselect);
+        DoubleClickAvailableCommand = new RelayCommand(SelectOption);
+        DoubleClickSelectedCommand = new RelayCommand(UnselectOption);
     }
 
     private void OnCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -117,7 +115,6 @@ class ListsDialogViewModel : BaseViewModel
     private void MoveOption(MoveDirection direction)
     {
         if (SelectedIndex < 0) { return; }
-        var selectedOption = SelectedOptions[SelectedIndex];
 
         if (direction == MoveDirection.Down)
         {

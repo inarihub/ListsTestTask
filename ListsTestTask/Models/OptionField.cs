@@ -3,7 +3,7 @@
     public class OptionField
     {
         public string Name { get; set; }
-        public bool IsSelected { get; set; }
+
         public OptionField(string name)
         {
             Name = name;

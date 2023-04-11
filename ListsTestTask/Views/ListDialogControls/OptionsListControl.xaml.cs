@@ -1,4 +1,5 @@
-﻿using ListsTestTask.Models;
+﻿using CommunityToolkit.Mvvm.Input;
+using ListsTestTask.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -27,9 +28,9 @@ namespace ListsTestTask.Views.ListDialogControls
             InitializeComponent();
         }
 
-        public ObservableCollection<OptionField> Index
+        public int Index
         {
-            get { return (ObservableCollection<OptionField>)GetValue(IndexProperty); }
+            get { return (int)GetValue(IndexProperty); }
             set { SetValue(IndexProperty, value); }
         }
 
@@ -45,6 +46,16 @@ namespace ListsTestTask.Views.ListDialogControls
 
         public static readonly DependencyProperty CollectionProperty =
             DependencyProperty.Register("Collection", typeof(ObservableCollection<OptionField>), typeof(OptionsListControl),
+                new PropertyMetadata(null));
+
+        public IRelayCommand DoubleClickCommand
+        {
+            get { return (IRelayCommand)GetValue(DoubleClickCommandProperty); }
+            set { SetValue(DoubleClickCommandProperty, value); }
+        }
+
+        public static readonly DependencyProperty DoubleClickCommandProperty =
+            DependencyProperty.Register("DoubleClickCommand", typeof(IRelayCommand), typeof(OptionsListControl),
                 new PropertyMetadata(null));
     }
 }

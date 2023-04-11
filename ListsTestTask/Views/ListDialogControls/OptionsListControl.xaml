@@ -1,23 +1,32 @@
-﻿<UserControl x:Class="ListsTestTask.Views.ListDialogControls.OptionsListControl"
+﻿<UserControl x:Name="optionControl" x:Class="ListsTestTask.Views.ListDialogControls.OptionsListControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:ListsTestTask.Views.ListDialogControls"
              xmlns:vm="clr-namespace:ListsTestTask.ViewModels"
+             xmlns:view="clr-namespace:ListsTestTask.Views"
              xmlns:DGDR="clr-namespace:ListsTestTask.DragDropBehavior"
              mc:Ignorable="d">
     <Grid>
         <ListBox x:Name="optionsList" HorizontalAlignment="Stretch" SelectionMode="Single"
-                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:OptionsListControl},
-                 Mode=FindAncestor}, Path=Collection}" IsSynchronizedWithCurrentItem="True"
-                 SelectedIndex="{Binding RelativeSource={RelativeSource AncestorType={x:Type local:OptionsListControl},
-                 Mode=FindAncestor}, Path=Index}">
+                 ItemsSource="{Binding ElementName=optionControl, Path=Collection}" IsSynchronizedWithCurrentItem="True"
+                 SelectedIndex="{Binding ElementName=optionControl, Path=Index}" AllowDrop="True">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Orientation="Vertical">
+                    <DockPanel>
+                        <DockPanel.InputBindings>
+                            <MouseBinding MouseAction="LeftDoubleClick"
+                                          Command="{Binding ElementName=optionControl, Path=DoubleClickCommand}"/>
+                        </DockPanel.InputBindings>
                         <TextBlock Text="{Binding Path=Name}"/>
-                    </StackPanel>
+                    </DockPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
