@@ -1,30 +1,19 @@
 ﻿using ListsTestTask.Models;
 using ListsTestTask.Views.ListDialogControls;
-using Microsoft.VisualBasic;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
 
 namespace ListsTestTask.DragDropBehavior;
-
-enum ElementVerticalHalf
-{
-    Upper,
-    Lower
-}
 
 public class DragDropOptionsList
 {
     static Point _startDragPos;
     static bool _isReadyToDrug;
-    static bool _isItemVisible;
+    static bool _isInList;
     static int _targetIndex;
     static OptionField? _previewItem;
     static ObservableCollection<OptionField>? _previewCollection;
@@ -52,7 +41,7 @@ public class DragDropOptionsList
                 control.optionsList.PreviewMouseLeftButtonDown += OptionsList_PreviewMouseLeftButtonDown;
                 control.optionsList.PreviewMouseLeftButtonUp += OptionsList_PreviewMouseLeftButtonUp;
                 control.optionsList.PreviewDragEnter += OptionsList_DragEnter;
-                control.optionsList.PreviewDragLeave += OptionsList_DragLeave;
+                control.optionsList.QueryContinueDrag += OptionsList_QueryContinueDrag;
                 control.optionsList.GiveFeedback += OptionsList_GiveFeedback;
                 control.optionsList.MouseMove += OptionsList_MouseMove;
                 control.optionsList.Drop += OptionsList_Drop;
@@ -62,11 +51,21 @@ public class DragDropOptionsList
                 control.optionsList.PreviewMouseLeftButtonDown -= OptionsList_PreviewMouseLeftButtonDown;
                 control.optionsList.PreviewMouseLeftButtonUp -= OptionsList_PreviewMouseLeftButtonUp;
                 control.optionsList.DragEnter -= OptionsList_DragEnter;
-                control.optionsList.DragLeave -= OptionsList_DragLeave;
+                control.optionsList.QueryContinueDrag -= OptionsList_QueryContinueDrag;
                 control.optionsList.GiveFeedback -= OptionsList_GiveFeedback;
                 control.optionsList.MouseMove -= OptionsList_MouseMove;
                 control.optionsList.Drop -= OptionsList_Drop;
             }
+        }
+    }
+
+    private static void OptionsList_QueryContinueDrag(object sender, QueryContinueDragEventArgs e)
+    {
+        if (e.EscapePressed || e.KeyStates.HasFlag(DragDropKeyStates.RightMouseButton)) 
+        {
+            e.Action = DragAction.Cancel;
+            RemovePreview();
+            e.Handled = true;
         }
     }
 
@@ -101,8 +100,9 @@ public class DragDropOptionsList
     private static void BeginDragDrop(ListBox listSource)
     {
         _isReadyToDrug = false;
-        _isItemVisible = true;
+        _isInList = true;
         int selectedIndex = listSource.SelectedIndex;
+        _targetIndex = selectedIndex;
         OptionField sourceObj = (OptionField)listSource.SelectedItem;
         DataObject _dataObj = new(typeof(OptionField), sourceObj);
 
@@ -111,12 +111,18 @@ public class DragDropOptionsList
 
         var results = DragDrop.DoDragDrop(listSource, _dataObj, DragDropEffects.Move);
 
-        if (results == DragDropEffects.None && _previewItem is null)
+        if (!_isInList)
         {
-            var collection = listSource.ItemsSource as ObservableCollection<OptionField>;
-            collection?.Insert(selectedIndex, sourceObj);
-            listSource.SelectedIndex = selectedIndex;
+            ReturnElement(listSource, sourceObj, selectedIndex);
         }
+    }
+
+    private static void ReturnElement(ListBox listSource, OptionField sourceObj, int selectedIndex)
+    {
+        var collection = listSource.ItemsSource as ObservableCollection<OptionField>;
+        collection?.Insert(selectedIndex, sourceObj);
+        listSource.SelectedIndex = selectedIndex;
+        _isInList = true;
     }
 
     private static void OptionsList_DragEnter(object sender, DragEventArgs e)
@@ -126,19 +132,17 @@ public class DragDropOptionsList
         if (!e.Data.GetDataPresent(typeof(OptionField)) || e.Effects != DragDropEffects.Move) 
             return;
 
-        if (!_isItemVisible && IsContentElement(listTarget, e.OriginalSource))
+        if (!_isInList && IsContentElement(listTarget, e.OriginalSource))
         {
             InsertPreview(listTarget, e.OriginalSource, e.Data);
-            Trace.WriteLine(e.OriginalSource.ToString());
         }
-        else if (!IsContentElement(listTarget, e.OriginalSource))
+        else if (IsContentElement(listTarget, e.OriginalSource))
         {
-            RemovePreview(listTarget, e.Data);
-            e.Effects = DragDropEffects.None;
+            MovePreview(listTarget, e.OriginalSource, e.Data, e);
         }
         else
         {
-            MovePreview(listTarget, e.OriginalSource, e.Data, e);
+            e.Effects = DragDropEffects.None;
         }
     }
 
@@ -148,35 +152,20 @@ public class DragDropOptionsList
         {
             Mouse.SetCursor(Cursors.No);
 
-            if (_previewItem is not null && _isItemVisible)
+            if (_previewItem is not null && _isInList)
             {
-                _previewCollection?.Remove(_previewItem);
-                _previewItem = null;
-                _previewCollection = null;
-                _targetIndex = 0;
-                _isItemVisible = false;
+                RemovePreview();
             }
         }
     }
 
-    private static void OptionsList_DragLeave(object sender, DragEventArgs e)
+    private static void RemovePreview()
     {
-        //e.Handled = true;
-        //if (e.Data.GetDataPresent(typeof(OptionField)))
-        //    Trace.WriteLine(e.OriginalSource.ToString());
-        //ListBox listTarget = (ListBox)sender;
-
-        //if (_isItemVisible)
-        //{
-        //    var result = VisualTreeHelper.HitTest(sender as ListBox, e.GetPosition(sender as UIElement));
-        //    if (result is not null || IsContentElement(listTarget, e.OriginalSource))
-        //    { return; }
-        //    _isItemVisible = false;
-        //    var dataObj = (OptionField)e.Data.GetData(typeof(OptionField));
-        //    var collection = listTarget.ItemsSource as ObservableCollection<OptionField>;
-        //    collection?.Remove(dataObj);
-        //    _targetIndex = 0;
-        //}
+        _previewCollection?.Remove(_previewItem!);
+        _previewItem = null;
+        _previewCollection = null;
+        _targetIndex = 0;
+        _isInList = false;
     }
 
     private static void OptionsList_Drop(object sender, DragEventArgs e)
@@ -190,12 +179,29 @@ public class DragDropOptionsList
         e.Effects = DragDropEffects.Move;
     }
 
-    private static ListBoxItem GetItemContainer(ListBox listBox, object obj)
-    {
-        return (ListBoxItem)listBox.ContainerFromElement(obj as UIElement);
+    private static void InsertPreview(ListBox listTarget, object obj, IDataObject data)
+    {   
+        var dataObj = (OptionField)data.GetData(typeof(OptionField));
+        _previewItem = GetItemContainer(listTarget, obj)?.Content as OptionField;
+        SetIndexFromTarget(_previewItem, listTarget);
+        SetInsert(dataObj, listTarget);
+        _isInList = true;
     }
 
-    private static void PreviewInsert(OptionField data, ListBox listTarget)
+    private static void MovePreview(ListBox listTarget, object obj, IDataObject data, DragEventArgs e)
+    {
+        var target = GetItemContainer(listTarget, obj)?.Content as OptionField;
+        var dataObj = (OptionField)data.GetData(typeof(OptionField));
+        if (target is not null && target == dataObj) return;
+        int oldIndex = _targetIndex;
+        SetIndexFromTarget(target, listTarget);
+
+        var collection = listTarget.ItemsSource as ObservableCollection<OptionField>;
+        collection?.Move(oldIndex, _targetIndex);
+        listTarget.SelectedItem = collection?[_targetIndex];
+    }
+
+    private static void SetInsert(OptionField data, ListBox listTarget)
     {
         _previewCollection = listTarget.ItemsSource as ObservableCollection<OptionField>;
         _previewItem = data;
@@ -211,64 +217,16 @@ public class DragDropOptionsList
         }
     }
 
-    private static void InsertPreview(ListBox listTarget, object obj, IDataObject data)
-    {
-        _isItemVisible = true;
-        var dataObj = (OptionField)data.GetData(typeof(OptionField));
-        _previewItem = GetItemContainer(listTarget, obj)?.Content as OptionField;
-        SetIndexFromTarget(_previewItem, listTarget);
-        PreviewInsert(dataObj, listTarget);
-    }
-
-    private static void RemovePreview(ListBox listTarget, IDataObject data)
-    {
-        //var collection = listTarget.ItemsSource as ObservableCollection<OptionField>;
-        //var dataObj = (OptionField)data.GetData(typeof(OptionField));
-        //collection?.Remove(dataObj);
-        //_targetIndex = 0;
-        //_isItemVisible = false;
-    }
-
-    private static void MovePreview(ListBox listTarget, object obj, IDataObject data, DragEventArgs e)
-    {
-        var target = GetItemContainer(listTarget, obj)?.Content as OptionField;
-        var dataObj = (OptionField)data.GetData(typeof(OptionField));
-        if (target is not null && target == dataObj) return;
-        int oldIndex = _targetIndex;
-       
-        SetIndexFromTarget(target, listTarget);
-
-        //if (GetAllocatonHalf(listTarget, e) == ElementVerticalHalf.Lower)
-        //    _targetIndex++;
-
-        var collection = listTarget.ItemsSource as ObservableCollection<OptionField>;
-        collection?.Move(oldIndex, _targetIndex);
-        listTarget.SelectedItem = collection?[_targetIndex];
-    }
-
-    private static ElementVerticalHalf? GetAllocatonHalf(ListBox listTarget, DragEventArgs e)
-    {
-        if (GetItemContainer(listTarget, e.OriginalSource) is ListBoxItem listItem)
-        {
-            var pos = e.GetPosition(listItem);
-            var size = listItem.RenderSize;
-            if (pos.Y > size.Height / 2)
-                return ElementVerticalHalf.Lower;
-            else
-                return ElementVerticalHalf.Upper;
-        }
-        else
-        {
-            _targetIndex = listTarget.Items.Count;
-            return null;
-        }
-    }
-
     private static bool IsContentElement(ListBox owner, object element)
     {
         ListBox listTarget = owner;
 
         return (listTarget.ContainerFromElement(element as UIElement) is ListBoxItem ||
             element is ScrollViewer || element is Border);
+    }
+
+    private static ListBoxItem GetItemContainer(ListBox listBox, object obj)
+    {
+        return (ListBoxItem)listBox.ContainerFromElement(obj as UIElement);
     }
 }
