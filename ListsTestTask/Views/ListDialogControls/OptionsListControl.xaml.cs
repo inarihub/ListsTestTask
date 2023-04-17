@@ -1,31 +1,21 @@
 ﻿using CommunityToolkit.Mvvm.Input;
+using ListsTestTask.DragDropBehavior;
 using ListsTestTask.Models;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace ListsTestTask.Views.ListDialogControls
 {
-    /// <summary>
-    /// Interaction logic for OptionsListControl.xaml
-    /// </summary>
     public partial class OptionsListControl : UserControl
     {
+        readonly OptionsDragDrop _optionsDragDrop;
+
         public OptionsListControl()
         {
             InitializeComponent();
+            _optionsDragDrop = new(optionsList);
         }
 
         public int Index
@@ -34,19 +24,17 @@ namespace ListsTestTask.Views.ListDialogControls
             set { SetValue(IndexProperty, value); }
         }
 
-        public static readonly DependencyProperty IndexProperty =
-            DependencyProperty.Register("Index", typeof(int), typeof(OptionsListControl),
-                new PropertyMetadata(-1));
-
         public ObservableCollection<OptionField> Collection
         {
             get { return (ObservableCollection<OptionField>)GetValue(CollectionProperty); }
             set { SetValue(CollectionProperty, value); }
         }
 
-        public static readonly DependencyProperty CollectionProperty =
-            DependencyProperty.Register("Collection", typeof(ObservableCollection<OptionField>), typeof(OptionsListControl),
-                new PropertyMetadata(null));
+        public bool DragDrop
+        {
+            get { return (bool)GetValue(DragDropProperty); }
+            set { SetValue(DragDropProperty, value); }
+        }
 
         public IRelayCommand DoubleClickCommand
         {
@@ -54,8 +42,41 @@ namespace ListsTestTask.Views.ListDialogControls
             set { SetValue(DoubleClickCommandProperty, value); }
         }
 
+        public static readonly DependencyProperty IndexProperty =
+            DependencyProperty.Register("Index", typeof(int), typeof(OptionsListControl),
+                new PropertyMetadata(-1));
+
+        public static readonly DependencyProperty CollectionProperty =
+            DependencyProperty.Register("Collection", typeof(ObservableCollection<OptionField>), typeof(OptionsListControl),
+                new PropertyMetadata(null));
+
+        public static readonly DependencyProperty DragDropProperty =
+            DependencyProperty.Register("DragDrop", typeof(bool), typeof(OptionsListControl), new PropertyMetadata(false, DragDropChangedCallback));
+
+        private static void DragDropChangedCallback(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if ((bool)e.NewValue == (bool)e.OldValue) return;
+            if ((bool)e.NewValue) 
+            {
+                (d as OptionsListControl)?._optionsDragDrop.SetDragDrop();
+            }
+            else
+            {
+                (d as OptionsListControl)?._optionsDragDrop.UnsetDragDrop();
+            }
+        }
+
         public static readonly DependencyProperty DoubleClickCommandProperty =
             DependencyProperty.Register("DoubleClickCommand", typeof(IRelayCommand), typeof(OptionsListControl),
                 new PropertyMetadata(null));
+
+        private void ListBoxItem_PreviewMouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                DoubleClickCommand?.Execute(null);
+                e.Handled = true;
+            }
+        }
     }
 }

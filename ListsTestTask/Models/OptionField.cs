@@ -1,6 +1,9 @@
-﻿namespace ListsTestTask.Models
+﻿using System;
+
+namespace ListsTestTask.Models
 {
-    public class OptionField
+    [Serializable]
+    public class OptionField : IOption
     {
         public string Name { get; set; }
 
